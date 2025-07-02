@@ -1,0 +1,85 @@
+#include <iostream>
+#include <vector>
+#include <cstdlib>
+#include <ctime>
+
+using namespace std;
+
+class Soldier {
+private:
+    int health;
+    int position;
+    string weapon;
+public:
+    Soldier(int h, int p, string w) : health(h), position(p), weapon(w) {}
+
+    void move(int direction) {
+        position += direction;
+        cout << "士兵移动到位置：" << position << endl;
+    }
+
+    void attack(Soldier& enemy) {
+        int damage = rand() % 30 + 10;
+        enemy.health -= damage;
+        cout << "使用" << weapon << "造成" << damage << "点伤害！"
+             << "敌军剩余生命：" << max(enemy.health, 0) << endl;
+    }
+
+    bool isAlive() { return health > 0; }
+};
+
+int main() {
+    srand(time(0));
+    vector<Soldier> enemies;
+    
+    // 初始化3个敌军
+    for (int i = 0; i < 3; ++i) {
+        enemies.emplace_back(100, rand() % 10 + 1, "AK47");
+    }
+
+    Soldier player(150, 5, "QBZ95");
+    
+    while (player.isAlive() && !enemies.empty()) {
+        // 玩家行动
+        cout << "\n=== 你的回合 ===" << endl;
+        cout << "选择行动 (1-移动 2-攻击): ";
+        
+        int action;
+        cin >> action;
+
+        if (action == 1) {
+            cout << "输入移动方向 (-1左/1右): ";
+            int dir;
+            cin >> dir;
+            player.move(dir);
+        } else {
+            cout << "选择目标 (0-" << enemies.size()-1 << "): ";
+            int target;
+            cin >> target;
+            
+            if (target >= 0 && target < enemies.size()) {
+                player.attack(enemies[target]);
+                if (!enemies[target].isAlive()) {
+                    cout << "目标已被消灭！" << endl;
+                    enemies.erase(enemies.begin() + target);
+                }
+            }
+        }
+
+        // 敌军反击
+        cout << "\n=== 敌军回合 ===" << endl;
+        for (auto& enemy : enemies) {
+            if (enemy.isAlive()) {
+                enemy.attack(player);
+            }
+        }
+
+        // 显示状态
+        cout << "\n=== 状态 ===" << endl;
+        cout << "你的生命值：" << player.isAlive() << endl;
+        cout << "剩余敌军：" << enemies.size() << endl;
+    }
+
+    cout << (player.isAlive() ? "任务完成！" : "任务失败！") << endl;
+    return 0;
+}
